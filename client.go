@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// Client represents a game partecipant using WebSocket client.
 type Client struct {
 	conn       *websocket.Conn
 	send       chan []byte
@@ -88,6 +89,7 @@ func (c *Client) writePump() {
 	for {
 		select {
 		case message, ok := <-c.send:
+			log.Println("Received message: ", string(message))
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// The hub closed the channel.

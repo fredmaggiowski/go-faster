@@ -27,7 +27,12 @@ func main() {
 	go hub.run()
 
 	router := mux.NewRouter()
-	router.HandleFunc("/", serveHome)
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		serveFile(w, r, "game.html")
+	})
+	router.HandleFunc("/old", func(w http.ResponseWriter, r *http.Request) {
+		serveFile(w, r, "home.html")
+	})
 	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		getWSConnection(hub, w, r)
 	})
@@ -42,15 +47,15 @@ func main() {
 	log.Fatal(srv.ListenAndServe())
 }
 
-func serveHome(w http.ResponseWriter, r *http.Request) {
+func serveFile(w http.ResponseWriter, r *http.Request, file string) {
 	log.Println(r.URL)
-	if r.URL.Path != "/" {
-		http.Error(w, "Not found", http.StatusNotFound)
-		return
-	}
+	// if r.URL.Path != "/" {
+	// 	http.Error(w, "Not found", http.StatusNotFound)
+	// 	return
+	// }
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	http.ServeFile(w, r, "home.html")
+	http.ServeFile(w, r, file)
 }

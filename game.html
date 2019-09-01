@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Go Faster | Mia-Platform unconference</title>
+  </head>
+  <body>
+    <div id="messages">
+      <div id="no-ws">You have no WebSocket, use a different browser</div>
+      <div id="connected-message">You are connected to the game</div>
+      <div id="not-connected-message">You are not connected to the game</div>
+    </div>
+    <div id="game">
+      Please enter you name: 
+        <form id="nameForm">
+          <input id="nameField" type="text" placeholder="insert your name"/>
+          <input type="submit" value="Send" />
+        </form>
+    </div>
+  </body>
+  <script>
+    window.onload = () => {
+      // Prepare utilities.
+      const hide = e => e.style.display = 'none'
+      const show = e => e.style.display = 'initial'
+      const bootSocket = ({onMessage}) => {
+        const socket = new WebSocket("ws://" + document.location.host + "/ws")
+        socket.onclose = function (e) {
+          var item = document.createElement("div")
+          item.innerHTML = '<b>Connection closed.</b>'
+        }
+        socket.onmessage = function (e) {
+          const {data} = e
+          onMessage && onMessage(data)
+        }
+        return socket
+      }
+      const send = (socket, data) => {console.log('Sending ', data); socket.send(data)}
+
+      // Get useful document references
+      let messages = document.getElementById('messages').children
+      let game = document.getElementById('game')
+      let nameForm = document.getElementById('nameForm')
+      let nameField = document.getElementById('nameField')
+
+      // Hide messages
+      Array.from(messages).forEach(h => hide(h))
+      hide(game)
+
+      // Check WebSocket
+      if (!window.WebSocket) {
+        show(messages[0])
+        return
+      }
+
+      const socket = bootSocket({
+        onMessage: (data) => {
+          const messages = data.split('\n')
+          console.log('Recv messages', messages, '[Raw data: ', data, ']')
+          for (let i = 0; i < messages.length; i++) {
+            let item = document.createElement("div")
+            item.innerText = messages[i]
+            console.log('>',item)
+          }
+        }
+      })
+      show(game)
+
+      nameForm.onsubmit = function() {
+        if (!nameField.value) {
+          alert('Please, insert your name!')
+          return false
+        }
+        send(socket, `name:${nameField.value}`)
+        return false
+      }
+    }
+  </script>
+</html>
