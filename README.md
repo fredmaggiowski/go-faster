@@ -1,4 +1,4 @@
-# GO Faster
+# Go Faster
 
 Go Faster is a simple game designed for a speech at the Mia-Platform unconference.
 
