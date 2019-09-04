@@ -81,6 +81,10 @@ func (h *Hub) run() {
 				delete(h.clients, client)
 			}
 
+		case client := <-h.playedTurn:
+			h.clients[client] = true
+			h.selectTurn()
+
 		case message := <-h.broadcast:
 			for client := range h.clients {
 				log.Println("Sending to client:", client.name)
