@@ -2,6 +2,21 @@
 <html>
   <head>
     <title>Go Faster | Mia-Platform unconference</title>
+    <style>
+      #go-button {
+        color: white;
+        background: red;
+        padding: 15px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        -ms-transform: translateX(-50%) translateY(-50%);
+        -webkit-transform: translate(-50%,-50%);
+        transform: translate(-50%,-50%);
+        border-radius: 10px;
+        cursor: pointer;
+      }
+    </style>
   </head>
   <body>
     <div id="messages">
@@ -15,6 +30,8 @@
           <input id="nameField" type="text" placeholder="insert your name"/>
           <input type="submit" value="Send" />
         </form>
+
+        <div id="go-button">Go!</div>
     </div>
   </body>
   <script>
@@ -41,10 +58,12 @@
       let game = document.getElementById('game')
       let nameForm = document.getElementById('nameForm')
       let nameField = document.getElementById('nameField')
+      let goButton = document.getElementById('go-button')
 
       // Hide messages
       Array.from(messages).forEach(h => hide(h))
       hide(game)
+      hide(goButton)
 
       // Check WebSocket
       if (!window.WebSocket) {
@@ -56,6 +75,19 @@
         onMessage: (data) => {
           const messages = data.split('\n')
           console.log('Recv messages', messages, '[Raw data: ', data, ']')
+          const command = data.split(':')
+          switch (command[0]) {
+            case 'turn':
+              goButton.onclick = () => {
+                console.log('Button clicked!')
+                send(socket, `go:${nameField.value}`)
+                hide(goButton)
+              }
+              show(goButton)
+            break
+            default:
+              console.warn('Unknown command: ' + command[0] +'.')
+          }
           for (let i = 0; i < messages.length; i++) {
             let item = document.createElement("div")
             item.innerText = messages[i]
