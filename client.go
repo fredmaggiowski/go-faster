@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -11,9 +12,11 @@ import (
 // Client represents a game partecipant using WebSocket client.
 type Client struct {
 	conn       *websocket.Conn
+	name       string
 	send       chan []byte
 	broadcast  chan<- []byte
 	unregister chan<- *Client
+	playedTurn chan<- *Client
 }
 
 var (
@@ -40,12 +43,13 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func newClient(connection *websocket.Conn, unregister chan<- *Client, broadcast chan<- []byte) *Client {
+func newClient(connection *websocket.Conn, unregister chan<- *Client, broadcast chan<- []byte, playedTurn chan<- *Client) *Client {
 	return &Client{
 		conn:       connection,
 		send:       make(chan []byte, 256),
 		unregister: unregister,
 		broadcast:  broadcast,
+		playedTurn: playedTurn,
 	}
 }
 
@@ -71,7 +75,16 @@ func (c *Client) readPump() {
 			break
 		}
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		c.broadcast <- message
+
+		command := strings.Split(string(message), ":")
+		switch command[0] {
+		case "name":
+			log.Printf("Registering client with name: %s.\n", command[1])
+			c.name = command[1]
+		case "go":
+			log.Printf("Client %s has made its move.\n", command[1])
+			c.playedTurn <- c
+		}
 	}
 }
 

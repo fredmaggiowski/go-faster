@@ -15,7 +15,7 @@ func getWSConnection(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := newClient(conn, hub.unregister, hub.broadcast)
+	client := newClient(conn, hub.unregister, hub.broadcast, hub.playedTurn)
 	hub.register <- client
 
 	go client.writePump()
@@ -36,7 +36,13 @@ func main() {
 	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		getWSConnection(hub, w, r)
 	})
-
+	router.HandleFunc("/startgame", func(w http.ResponseWriter, r *http.Request) {
+		if err := hub.startGame(); err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		w.WriteHeader(200)
+	})
 	srv := &http.Server{
 		Handler:      router,
 		Addr:         "127.0.0.1:8000",
