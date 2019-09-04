@@ -102,7 +102,7 @@ func (c *Client) writePump() {
 	for {
 		select {
 		case message, ok := <-c.send:
-			log.Println("Received message: ", string(message))
+			log.Printf("Sending message: %s to client %s.\n", string(message), c.name)
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// The hub closed the channel.
@@ -115,14 +115,6 @@ func (c *Client) writePump() {
 				return
 			}
 			w.Write(message)
-
-			// Add queued chat messages to the current websocket message.
-			n := len(c.send)
-			for i := 0; i < n; i++ {
-				w.Write(newline)
-				w.Write(<-c.send)
-			}
-
 			if err := w.Close(); err != nil {
 				return
 			}
