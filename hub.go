@@ -41,12 +41,11 @@ func (h *Hub) startGame() error {
 		return fmt.Errorf("no player")
 	}
 
-	// Reset all turns
 	for client := range h.clients {
 		h.clients[client] = false
 	}
+	h.broadcast <- []byte("game:start")
 
-	// Start first turn
 	if !h.selectTurn() {
 		return fmt.Errorf("game over")
 	}

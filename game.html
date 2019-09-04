@@ -3,10 +3,7 @@
   <head>
     <title>Go Faster | Mia-Platform unconference</title>
     <style>
-      #go-button {
-        color: white;
-        background: red;
-        padding: 15px;
+      .centered {
         position: absolute;
         top: 50%;
         left: 50%;
@@ -16,6 +13,13 @@
         border-radius: 10px;
         cursor: pointer;
       }
+
+      #go-button {
+        color: white;
+        background: red;
+        padding: 15px;
+      }
+
     </style>
   </head>
   <body>
@@ -31,7 +35,8 @@
           <input type="submit" value="Send" />
         </form>
 
-        <div id="go-button">Go!</div>
+        <div id="go-button" class="centered">Go!</div>
+        <div id="game-over" class="centered">Game is over, winner is _TODO_</div>
     </div>
   </body>
   <script>
@@ -59,11 +64,13 @@
       let nameForm = document.getElementById('nameForm')
       let nameField = document.getElementById('nameField')
       let goButton = document.getElementById('go-button')
+      let gameOver = document.getElementById('game-over')
 
       // Hide messages
       Array.from(messages).forEach(h => hide(h))
       hide(game)
       hide(goButton)
+      hide(gameOver)
 
       // Check WebSocket
       if (!window.WebSocket) {
@@ -85,6 +92,16 @@
               }
               show(goButton)
             break
+            case 'game':
+              if (command[1] === 'start') {
+                hide(gameOver)
+                return
+              }
+
+              if (command[1] === 'over') {
+                show(gameOver)
+              }
+
             default:
               console.warn('Unknown command: ' + command[0] +'.')
           }
