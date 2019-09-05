@@ -1,13 +1,36 @@
 package main
 
-// TimeTrack is used to log start and end of a player turn.
+import (
+	"time"
+)
+
 type TimeTrack struct {
-	Start int
-	End   int
+	Start time.Time
+	End   time.Time
 }
 
 // Statistics is used to log game statistics.
 type Statistics struct {
-	StartTimings map[string]int
-	EndTimings   map[string]int
+	Speed map[string]TimeTrack
+}
+
+func newStatistics() *Statistics {
+	return &Statistics{
+		Speed: make(map[string]TimeTrack),
+	}
+}
+
+func (s *Statistics) getWinner() string {
+	var winner string
+	deltaWinner, _ := time.ParseDuration("2000h")
+
+	for player, track := range s.Speed {
+		delta := track.End.Sub(track.Start)
+		if delta < deltaWinner {
+			deltaWinner = delta
+			winner = player
+		}
+	}
+
+	return winner
 }
