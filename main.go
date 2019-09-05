@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -36,6 +37,10 @@ func main() {
 	router.HandleFunc("/startgame", func(w http.ResponseWriter, r *http.Request) {
 		if err := hub.startGame(); err != nil {
 			w.WriteHeader(500)
+			e, _ := json.Marshal(map[string]string{
+				"error": err.Error(),
+			})
+			w.Write(e)
 			return
 		}
 		w.WriteHeader(200)

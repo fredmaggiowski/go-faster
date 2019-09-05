@@ -4,25 +4,20 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"time"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to the
 // clients.
 type Hub struct {
-	// Registered clients.
 	clients map[*Client]bool
 
-	// Inbound messages from the clients.
-	broadcast chan []byte
-
-	// Register requests from the clients.
-	register chan *Client
-
-	// Unregister requests from clients.
+	broadcast  chan []byte
+	register   chan *Client
 	unregister chan *Client
-
 	turn       chan *Client
 	playedTurn chan *Client
+	statistics Statistics
 }
 
 func newHub() *Hub {
@@ -33,6 +28,10 @@ func newHub() *Hub {
 		broadcast:  make(chan []byte, 1),
 		turn:       make(chan *Client, 1),
 		playedTurn: make(chan *Client, 1),
+		statistics: Statistics{
+			StartTimings: make(map[string]int),
+			EndTimings:   make(map[string]int),
+		},
 	}
 }
 
@@ -70,6 +69,20 @@ func (h *Hub) selectTurn() bool {
 	return true
 }
 
+func (h *Hub) getWinner() string {
+	var winner string
+	deltaWinner := 999999999999999999
+	for client := range h.clients {
+		delta := (h.statistics.EndTimings[client.name] - h.statistics.StartTimings[client.name]) / 1000
+		if delta < deltaWinner {
+			deltaWinner = delta
+			winner = client.name
+		}
+	}
+	log.Printf("Winning player %s took %d ms\n", winner, deltaWinner)
+	return winner
+}
+
 func (h *Hub) run() {
 	for {
 		select {
@@ -84,6 +97,7 @@ func (h *Hub) run() {
 		case client := <-h.turn:
 			select {
 			case client.send <- []byte(fmt.Sprintf("turn:%s", client.name)):
+				h.statistics.StartTimings[client.name] = time.Now().Nanosecond()
 			default:
 				close(client.send)
 				delete(h.clients, client)
@@ -91,9 +105,12 @@ func (h *Hub) run() {
 
 		case client := <-h.playedTurn:
 			h.clients[client] = true
+			h.statistics.EndTimings[client.name] = time.Now().Nanosecond()
+			delta := (h.statistics.EndTimings[client.name] - h.statistics.StartTimings[client.name]) / 1000
+			log.Printf("Player %s took %d ms\n", client.name, delta)
 			if !h.selectTurn() {
 				log.Println("No more players, game is over")
-				h.broadcast <- []byte("game:over")
+				h.broadcast <- []byte(fmt.Sprintf("game:over\nwinner:%s", h.getWinner()))
 			}
 
 		case message := <-h.broadcast:
