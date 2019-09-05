@@ -30,9 +30,6 @@ func main() {
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		serveFile(w, r, "game.html")
 	})
-	router.HandleFunc("/old", func(w http.ResponseWriter, r *http.Request) {
-		serveFile(w, r, "home.html")
-	})
 	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		getWSConnection(hub, w, r)
 	})
