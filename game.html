@@ -43,7 +43,6 @@
       #nameForm input {
         margin-top: 10px;
       }
-
     </style>
   </head>
   <body>
@@ -53,7 +52,7 @@
       <div id="not-connected-message">You are not connected to the game</div>
     </div>
     <div id="game">
-      <form id="nameForm">
+      <form id="nameForm" class="text-center">
         <div>Please enter you name</div>
         <input id="nameField" type="text" placeholder="Insert your name"/>
         <br>
@@ -70,7 +69,7 @@
 
       // Prepare utilities.
       const hide = e => e.style.display = 'none'
-      const show = e => e.style.display = 'initial'
+      const show = e => e.style.display = 'block'
       const bootSocket = ({onMessage}) => {
         const socket = new WebSocket("ws://" + document.location.host + "/ws")
         socket.onclose = function (e) {

@@ -102,7 +102,7 @@ func (c *Client) writePump() {
 	for {
 		select {
 		case message, ok := <-c.send:
-			log.Printf("Sending message: %s to client %s.\n", string(message), c.name)
+			log.Printf("Sending message: [%s] to client %s.\n", strings.ReplaceAll(string(message), "\n", " "), c.name)
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// The hub closed the channel.
