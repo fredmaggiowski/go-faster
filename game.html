@@ -2,7 +2,14 @@
 <html>
   <head>
     <title>Go Faster | Mia-Platform unconference</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
     <style>
+      body {
+        padding-top: 20px;
+      }
+
       .centered {
         position: absolute;
         top: 50%;
@@ -14,12 +21,28 @@
         cursor: pointer;
       }
 
+      .text-center {
+        text-align: center;
+      }
+
+      #winner {
+        font-style: italic;
+      }
+
       #go-button {
         color: white;
         background: red;
         padding: 15px;
+        width: 200px;
       }
 
+      #nameForm {
+        text-align: center;
+      }
+
+      #nameForm input {
+        margin-top: 10px;
+      }
     </style>
   </head>
   <body>
@@ -29,14 +52,15 @@
       <div id="not-connected-message">You are not connected to the game</div>
     </div>
     <div id="game">
-      <form id="nameForm">
-          <div>Please enter you name:</div>
-          <input id="nameField" type="text" placeholder="insert your name"/>
-          <input type="submit" value="Send" />
-        </form>
+      <form id="nameForm" class="text-center">
+        <div>Please enter you name</div>
+        <input id="nameField" type="text" placeholder="Insert your name"/>
+        <br>
+        <input type="submit" value="Send" />
+      </form>
 
-        <div id="go-button" class="centered">Go!</div>
-        <div id="game-over" class="centered">Game is over, winner is <span id="winner"></span></div>
+      <button id="go-button" class="centered">Go!</button>
+      <div id="game-over" class="centered text-center">Game is over, winner is <br><span id="winner"></span></div>
     </div>
   </body>
   <script>
@@ -45,7 +69,7 @@
 
       // Prepare utilities.
       const hide = e => e.style.display = 'none'
-      const show = e => e.style.display = 'initial'
+      const show = e => e.style.display = 'block'
       const bootSocket = ({onMessage}) => {
         const socket = new WebSocket("ws://" + document.location.host + "/ws")
         socket.onclose = function (e) {
@@ -102,6 +126,7 @@
               }
 
               if (command[1] === 'over') {
+                show(nameForm)
                 show(gameOver)
                 setWinner(command[1].split('-')[1])
               }
@@ -129,6 +154,7 @@
           return false
         }
         send(socket, `name:${nameField.value}`)
+        hide(nameForm)
         return false
       }
     }

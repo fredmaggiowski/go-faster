@@ -110,7 +110,7 @@ func (h *Hub) run() {
 			h.statistics.Speed[client.name] = playerTrack
 
 			delta := playerTrack.End.Sub(playerTrack.Start).Seconds()
-			log.Printf("Player %s took %f.03s\n", client.name, delta)
+			log.Printf("Player %s took %.03fs\n", client.name, delta)
 			if !h.selectTurn() {
 				log.Println("No more players, game is over")
 				h.broadcast <- []byte(fmt.Sprintf("game:over\nwinner:%s", h.statistics.getWinner()))

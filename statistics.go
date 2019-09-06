@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// TimeTrack is used to track start and end of a game turn.
 type TimeTrack struct {
 	Start time.Time
 	End   time.Time
