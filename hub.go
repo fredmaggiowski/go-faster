@@ -12,23 +12,25 @@ import (
 type Hub struct {
 	clients map[*Client]bool
 
-	broadcast  chan []byte
-	register   chan *Client
-	unregister chan *Client
-	turn       chan *Client
-	playedTurn chan *Client
-	statistics *Statistics
+	broadcast    chan []byte
+	register     chan *Client
+	unregister   chan *Client
+	turn         chan *Client
+	playedTurn   chan *Client
+	nameReceived chan *Client
+	statistics   *Statistics
 }
 
 func newHub() *Hub {
 	return &Hub{
-		clients:    make(map[*Client]bool),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
-		broadcast:  make(chan []byte, 1),
-		turn:       make(chan *Client, 1),
-		playedTurn: make(chan *Client, 1),
-		statistics: newStatistics(),
+		clients:      make(map[*Client]bool),
+		register:     make(chan *Client),
+		unregister:   make(chan *Client),
+		broadcast:    make(chan []byte, 1),
+		turn:         make(chan *Client, 1),
+		playedTurn:   make(chan *Client, 1),
+		nameReceived: make(chan *Client),
+		statistics:   newStatistics(),
 	}
 }
 
@@ -53,7 +55,7 @@ func (h *Hub) startGame() error {
 func (h *Hub) selectTurn() bool {
 	notYetPlayed := make([]*Client, 0)
 	for client, played := range h.clients {
-		if !played && client.name != "admin" {
+		if !played && !client.isAdmin {
 			notYetPlayed = append(notYetPlayed, client)
 		}
 	}
@@ -67,9 +69,23 @@ func (h *Hub) selectTurn() bool {
 	return true
 }
 
+func (h *Hub) broadcastToAdmin(msg []byte) {
+	for client := range h.clients {
+		if client.isAdmin {
+			client.send <- msg
+		}
+	}
+}
+
 func (h *Hub) run() {
 	for {
 		select {
+		case client := <-h.nameReceived:
+			fmt.Printf("PIPPO %s", client.name)
+			if !client.isAdmin {
+				msg := fmt.Sprintf("register:%s", client.name)
+				h.broadcastToAdmin([]byte(msg))
+			}
 		case client := <-h.register:
 			h.clients[client] = false
 		case client := <-h.unregister:

@@ -9,14 +9,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func getWSConnection(hub *Hub, w http.ResponseWriter, r *http.Request) {
+func getWSConnection(hub *Hub, w http.ResponseWriter, r *http.Request, isAdmin bool) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	client := newClient(conn, hub.unregister, hub.broadcast, hub.playedTurn)
+	client := newClient(conn, hub.unregister, hub.broadcast, hub.playedTurn, hub.nameReceived, isAdmin)
 	hub.register <- client
 
 	go client.writePump()
@@ -35,7 +35,10 @@ func main() {
 		serveFile(w, r, "admin.html")
 	})
 	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		getWSConnection(hub, w, r)
+		getWSConnection(hub, w, r, false)
+	})
+	router.HandleFunc("/ws-admin", func(w http.ResponseWriter, r *http.Request) {
+		getWSConnection(hub, w, r, true)
 	})
 	router.HandleFunc("/startgame", func(w http.ResponseWriter, r *http.Request) {
 		if err := hub.startGame(); err != nil {

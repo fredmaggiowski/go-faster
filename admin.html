@@ -29,6 +29,15 @@
         <button id="start-button">START A NEW GAME!</button>
         <button id="stop-button">STOP THE GAME!</button>
     </div>
+    <table>
+      <thead>
+        <th>Client name</th>
+        <th>Played</th>
+        <th>Time</th>
+      </thead>
+      <tbody id="admin-tbody">
+      </tbody>
+    </table>
   </body>
   <script>
     window.onload = () => {
@@ -36,7 +45,7 @@
       const hide = e => e.style.display = 'none'
       const show = e => e.style.display = 'initial'
       const bootSocket = ({onMessage}) => {
-        const socket = new WebSocket("ws://" + document.location.host + "/ws")
+        const socket = new WebSocket("ws://" + document.location.host + "/ws-admin")
         socket.onclose = function (e) {
           var item = document.createElement("div")
           item.innerHTML = '<b>Connection closed.</b>'
@@ -54,6 +63,7 @@
       let adminConsole = document.getElementById('admin-console')
       let startButton = document.getElementById('start-button')
       let stopButton = document.getElementById('stop-button')
+      let tbody = document.getElementById('admin-tbody')
 
       // Hide messages
       Array.from(messages).forEach(h => hide(h))
@@ -66,29 +76,46 @@
         return
       }
 
+      function addClient (clientName) {
+        var tr = document.createElement('tr')
+        var td = tr.appendChild(document.createElement('td'))
+        td.innerHTML = clientName
+        tr.id = `tr-${clientName}`
+        tbody.appendChild(tr)
+      }
+
+      function addPlayed (name, time) {
+        var tr = document.getElementById(`tr-${id}`)
+        var tdPlayed = tr.appendChild(document.createElement('td'))
+        var tdTime = tr.appendChild(document.createElement('td'))
+        tdPlayed.innerHTML = true
+        tdTime.innerHTML = time
+        tbody.appendChild(tr)
+      }
+
+      const commander = (data) => {
+        const command = data.split(':')
+          switch (command[0]) {
+            case 'register':
+              console.log('ASDASDASD', command)
+              addClient(command[1])
+              break
+            case 'go':
+              addPlayed(command[1], command[2])
+              break
+            case 'client':
+              setWinner(command[1])
+              break
+            default:
+              console.warn('Unknown command: ' + command[0] +'.')
+          }
+      }
+
       const socket = bootSocket({
         onMessage: (data) => {
           const messages = data.split('\n')
           console.log('Recv messages', messages, '[Raw data: ', data, ']')
-          const command = data.split(':')
-          switch (command[0]) {
-            case 'turn':
-              goButton.onclick = () => {
-                console.log('Button clicked!')
-                send(socket, `go:${nameField.value}`)
-                hide(goButton)
-              }
-              show(goButton)
-              hide(nameForm)
-            break
-            default:
-              console.warn('Unknown command: ' + command[0] +'.')
-          }
-          for (let i = 0; i < messages.length; i++) {
-            let item = document.createElement("div")
-            item.innerText = messages[i]
-            console.log('>',item)
-          }
+          messages.forEach(message => commander(message))
         }
       })
       show(adminConsole)
