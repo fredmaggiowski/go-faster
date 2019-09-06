@@ -85,7 +85,7 @@
       }
 
       function addPlayed (name, time) {
-        var tr = document.getElementById(`tr-${id}`)
+        var tr = document.getElementById(`tr-${name}`)
         var tdPlayed = tr.appendChild(document.createElement('td'))
         var tdTime = tr.appendChild(document.createElement('td'))
         tdPlayed.innerHTML = true
@@ -97,7 +97,6 @@
         const command = data.split(':')
           switch (command[0]) {
             case 'register':
-              console.log('ASDASDASD', command)
               addClient(command[1])
               break
             case 'go':

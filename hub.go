@@ -81,7 +81,6 @@ func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.nameReceived:
-			fmt.Printf("PIPPO %s", client.name)
 			if !client.isAdmin {
 				msg := fmt.Sprintf("register:%s", client.name)
 				h.broadcastToAdmin([]byte(msg))
@@ -111,6 +110,7 @@ func (h *Hub) run() {
 
 			delta := playerTrack.End.Sub(playerTrack.Start).Seconds()
 			log.Printf("Player %s took %.03fs\n", client.name, delta)
+			h.broadcastToAdmin([]byte(fmt.Sprintf("go:%s:%.03f", client.name, delta)))
 			if !h.selectTurn() {
 				log.Println("No more players, game is over")
 				h.broadcast <- []byte(fmt.Sprintf("game:over\nwinner:%s", h.statistics.getWinner()))
