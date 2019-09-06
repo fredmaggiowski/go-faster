@@ -3,7 +3,10 @@
   <head>
     <title>Go Faster | Mia-Platform unconference</title>
     <style>
-      .centered {
+      button {
+        color: white;
+        background: red;
+        padding: 15px;
         position: absolute;
         top: 50%;
         left: 50%;
@@ -12,14 +15,8 @@
         transform: translate(-50%,-50%);
         border-radius: 10px;
         cursor: pointer;
+        outline: none;
       }
-
-      #go-button {
-        color: white;
-        background: red;
-        padding: 15px;
-      }
-
     </style>
   </head>
   <body>
@@ -28,21 +25,13 @@
       <div id="connected-message">You are connected to the game</div>
       <div id="not-connected-message">You are not connected to the game</div>
     </div>
-    <div id="game">
-      <form id="nameForm">
-          <div>Please enter you name:</div>
-          <input id="nameField" type="text" placeholder="insert your name"/>
-          <input type="submit" value="Send" />
-        </form>
-
-        <div id="go-button" class="centered">Go!</div>
-        <div id="game-over" class="centered">Game is over, winner is <span id="winner"></span></div>
+    <div id="admin-console">
+        <button id="start-button">START A NEW GAME!</button>
+        <button id="stop-button">STOP THE GAME!</button>
     </div>
   </body>
   <script>
     window.onload = () => {
-      let socket
-
       // Prepare utilities.
       const hide = e => e.style.display = 'none'
       const show = e => e.style.display = 'initial'
@@ -62,30 +51,26 @@
 
       // Get useful document references
       let messages = document.getElementById('messages').children
-      let game = document.getElementById('game')
-      let nameForm = document.getElementById('nameForm')
-      let nameField = document.getElementById('nameField')
-      let goButton = document.getElementById('go-button')
-      let gameOver = document.getElementById('game-over')
-      let setWinner = (winner) => {
-        document.getElementById('winner').innerHTML = winner
-      }
+      let adminConsole = document.getElementById('admin-console')
+      let startButton = document.getElementById('start-button')
+      let stopButton = document.getElementById('stop-button')
 
       // Hide messages
       Array.from(messages).forEach(h => hide(h))
-      hide(game)
-      hide(goButton)
-      hide(gameOver)
+      hide(adminConsole)
+      hide(stopButton)
 
       // Check WebSocket
       if (!window.WebSocket) {
         show(messages[0])
         return
       }
-      show(game)
 
-      const commander = (data) => {
-        const command = data.split(':')
+      const socket = bootSocket({
+        onMessage: (data) => {
+          const messages = data.split('\n')
+          console.log('Recv messages', messages, '[Raw data: ', data, ']')
+          const command = data.split(':')
           switch (command[0]) {
             case 'turn':
               goButton.onclick = () => {
@@ -94,42 +79,34 @@
                 hide(goButton)
               }
               show(goButton)
-              break
-            case 'game':
-              if (command[1] === 'start') {
-                hide(gameOver)
-                return
-              }
-
-              if (command[1] === 'over') {
-                show(gameOver)
-                setWinner(command[1].split('-')[1])
-              }
-              break
-            case 'winner':
-              setWinner(command[1])
-              break
-
+              hide(nameForm)
+            break
             default:
               console.warn('Unknown command: ' + command[0] +'.')
           }
-      }
-
-      socket = bootSocket({
-        onMessage: (data) => {
-          const messages = data.split('\n')
-          console.log('Received messages', messages, '[Raw data: ', data, ']')
-          messages.forEach(message => commander(message))
+          for (let i = 0; i < messages.length; i++) {
+            let item = document.createElement("div")
+            item.innerText = messages[i]
+            console.log('>',item)
+          }
         }
       })
+      show(adminConsole)
 
-      nameForm.onsubmit = function() {
-        if (!nameField.value) {
-          alert('Please, insert your name!')
-          return false
-        }
-        send(socket, `name:${nameField.value}`)
-        return false
+      startButton.onclick = (e) => {
+        fetch('/startgame')
+          .then(res => {
+            show(stopButton)
+            hide(startButton)
+          })
+      }
+
+      stopButton.onclick = (e) => {
+        fetch('/stopgame')
+          .then(res => {
+            hide(stopButton)
+            show(startButton)
+          })
       }
     }
   </script>

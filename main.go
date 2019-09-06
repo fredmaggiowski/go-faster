@@ -31,6 +31,9 @@ func main() {
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		serveFile(w, r, "game.html")
 	})
+	router.HandleFunc("/admin", func(w http.ResponseWriter, r *http.Request) {
+		serveFile(w, r, "admin.html")
+	})
 	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		getWSConnection(hub, w, r)
 	})
@@ -45,6 +48,10 @@ func main() {
 		}
 		w.WriteHeader(200)
 	})
+	router.HandleFunc("/stopgame", func(w http.ResponseWriter, r *http.Request) {
+		// hub.stopGame()
+		w.WriteHeader(200)
+	})
 	srv := &http.Server{
 		Handler:      router,
 		Addr:         "127.0.0.1:8000",
@@ -57,10 +64,6 @@ func main() {
 
 func serveFile(w http.ResponseWriter, r *http.Request, file string) {
 	log.Println(r.URL)
-	// if r.URL.Path != "/" {
-	// 	http.Error(w, "Not found", http.StatusNotFound)
-	// 	return
-	// }
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
