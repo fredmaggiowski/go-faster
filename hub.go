@@ -114,6 +114,7 @@ func (h *Hub) run() {
 			if !h.selectTurn() {
 				log.Println("No more players, game is over")
 				h.broadcast <- []byte(fmt.Sprintf("game:over\nwinner:%s", h.statistics.getWinner()))
+				h.broadcastToAdmin([]byte(fmt.Sprintf("end:game")))
 			}
 
 		case message := <-h.broadcast:
@@ -128,4 +129,9 @@ func (h *Hub) run() {
 			}
 		}
 	}
+}
+
+func (h *Hub) stopGame() {
+	h.broadcastToAdmin([]byte(fmt.Sprintf("clear:all")))
+	h.broadcast <- []byte(fmt.Sprintf("clear:all"))
 }

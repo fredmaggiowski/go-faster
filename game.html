@@ -135,6 +135,9 @@
               setWinner(command[1])
               break
 
+            case 'clear':
+              location.reload()
+              break
             default:
               console.warn('Unknown command: ' + command[0] +'.')
           }

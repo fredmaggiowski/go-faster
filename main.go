@@ -52,7 +52,7 @@ func main() {
 		w.WriteHeader(200)
 	})
 	router.HandleFunc("/stopgame", func(w http.ResponseWriter, r *http.Request) {
-		// hub.stopGame()
+		hub.stopGame()
 		w.WriteHeader(200)
 	})
 	srv := &http.Server{
